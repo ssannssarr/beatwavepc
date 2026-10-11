@@ -456,6 +456,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           ),
         ),
         BlocProvider(
+          lazy: false,
           create: (context) => LyricsCubit(
             beatwavePlayerCubit,
             lyricsDao: LyricsDAO(DBProvider.db),

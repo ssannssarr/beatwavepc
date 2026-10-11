@@ -269,14 +269,13 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
               children: [
                 if (artworkUrl.isNotEmpty)
                   Transform.scale(
-                    scale: 1.2,
+                    scale: 1.35,
                     child: ImageFiltered(
-                      // FIX M-10: Reduced from sigma=80 to sigma=22.
-                      // The blur background is overlaid with a 0.6 opacity
-                      // black layer — the visual difference from reducing blur
-                      // radius is imperceptible while GPU load drops ~3x on
-                      // mid-range Android devices (Snapdragon 600/700 series).
-                      imageFilter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                      imageFilter: ImageFilter.blur(
+                        sigmaX: 32,
+                        sigmaY: 32,
+                        tileMode: TileMode.clamp,
+                      ),
                       child: Container(
                         decoration: BoxDecoration(
                           image: DecorationImage(
@@ -288,7 +287,18 @@ class _FullscreenLyricsViewState extends State<FullscreenLyricsView> {
                       ),
                     ),
                   ),
-                Container(color: Colors.black.withValues(alpha: 0.6)),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.50),
+                        Colors.black.withValues(alpha: 0.70),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

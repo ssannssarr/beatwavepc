@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:beatwave/blocs/downloader/cubit/downloader_cubit.dart';
 import 'package:beatwave/blocs/library/cubit/library_items_cubit.dart';
@@ -781,7 +782,9 @@ class _PlayPauseButton extends StatelessWidget {
 
 /// FIX M-06: Replaced async palette fetch inside build() with a proper
 /// lifecycle-based approach using a stream subscription.
-/// The fetch only triggers when the artUri CHANGES, not on every rebuild.
+/// Immersive Haze Blur background widget.
+/// Combines scaled blurred album art, organic dynamic dual-bloom ambient mesh gradients,
+/// and an atmospheric vignette scrim for pristine contrast.
 class AmbientImgShadowWidget extends StatefulWidget {
   const AmbientImgShadowWidget({super.key});
 
@@ -790,7 +793,8 @@ class AmbientImgShadowWidget extends StatefulWidget {
 }
 
 class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
-  Color? _cachedColor;
+  Color? _cachedDominantColor;
+  Color? _cachedVibrantColor;
   String? _lastArtUri;
   StreamSubscription? _mediaSub;
   bool _fetchingPalette = false;
@@ -818,7 +822,12 @@ class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
     try {
       final palette = await getPalleteFromImage(artUri);
       if (mounted) {
-        setState(() => _cachedColor = palette.dominantColor?.color);
+        setState(() {
+          _cachedDominantColor = palette.dominantColor?.color;
+          _cachedVibrantColor = palette.vibrantColor?.color ??
+              palette.lightVibrantColor?.color ??
+              palette.mutedColor?.color;
+        });
       }
     } catch (_) {
     } finally {
@@ -834,20 +843,94 @@ class _AmbientImgShadowWidgetState extends State<AmbientImgShadowWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final dominant = _cachedDominantColor ?? const Color(0xFF6B1D52);
+    final vibrant = _cachedVibrantColor ?? const Color(0xFF1D2852);
+    final artUri = _lastArtUri ?? '';
+
     return RepaintBoundary(
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            colors: [
-              (_cachedColor ?? const Color.fromARGB(255, 163, 44, 115))
-                  .withValues(alpha: 0.35),
-              Colors.transparent,
-            ],
-            center: Alignment.center,
-            radius: 0.70,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Base dark foundation
+          const ColoredBox(color: Color(0xFF09060E)),
+
+          // Scaled Blurred Artwork — Haze Base Layer
+          if (artUri.isNotEmpty)
+            Positioned.fill(
+              child: Transform.scale(
+                scale: 1.4,
+                child: ImageFiltered(
+                  imageFilter: ImageFilter.blur(
+                    sigmaX: 38,
+                    sigmaY: 38,
+                    tileMode: TileMode.clamp,
+                  ),
+                  child: LoadImageCached(
+                    imageUrl: artUri,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+            ),
+
+          // Primary Dynamic Ambient Bloom (Dominant color)
+          Positioned.fill(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(-0.35, -0.45),
+                  radius: 1.25,
+                  colors: [
+                    dominant.withValues(alpha: 0.50),
+                    dominant.withValues(alpha: 0.15),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.55, 1.0],
+                ),
+              ),
+            ),
           ),
-        ),
+
+          // Secondary Dynamic Ambient Bloom (Vibrant / complementary color)
+          Positioned.fill(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: const Alignment(0.55, 0.45),
+                  radius: 1.15,
+                  colors: [
+                    vibrant.withValues(alpha: 0.38),
+                    vibrant.withValues(alpha: 0.10),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.50, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // Atmospheric Vignette & Contrast Scrim for crisp text/controls readability
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.35),
+                    Colors.black.withValues(alpha: 0.50),
+                    Colors.black.withValues(alpha: 0.82),
+                  ],
+                  stops: const [0.0, 0.45, 1.0],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

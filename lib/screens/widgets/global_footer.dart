@@ -3,6 +3,7 @@ import 'package:beatwave/screens/widgets/player_overlay_wrapper.dart';
 import 'package:beatwave/screens/widgets/mini_player_widget.dart';
 import 'package:beatwave/core/theme/app_theme.dart';
 import 'package:beatwave/l10n/app_localizations.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -210,33 +211,67 @@ class VerticalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return NavigationRail(
-      backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      destinations: [
-        NavigationRailDestination(
-            icon: const Icon(MingCute.home_4_fill), label: Text(l10n.navHome)),
-        NavigationRailDestination(
-            icon: const Icon(MingCute.book_5_fill),
-            label: Text(l10n.navLibrary)),
-        NavigationRailDestination(
-            icon: const Icon(MingCute.search_2_fill),
-            label: Text(l10n.navSearch)),
-        NavigationRailDestination(
-            icon: const Icon(MingCute.music_2_fill),
-            label: Text(l10n.navLocal)),
-        NavigationRailDestination(
-            icon: const Icon(MingCute.folder_download_fill),
-            label: Text(l10n.navOffline)),
-      ],
-      selectedIndex: navigationShell.currentIndex,
-      minWidth: 70,
-      onDestinationSelected: navigationShell.goBranch,
-      groupAlignment: 0.0,
-      unselectedIconTheme:
-          const IconThemeData(color: Default_Theme.primaryColor2),
-      indicatorColor: Default_Theme.accentColor2,
-      indicatorShape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.all(Radius.circular(15)),
+    return RepaintBoundary(
+      child: ClipRRect(
+        borderRadius: const BorderRadius.horizontal(right: Radius.circular(22)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF1B1626).withValues(alpha: 0.65),
+                  const Color(0xFF0F0B17).withValues(alpha: 0.78),
+                ],
+              ),
+              borderRadius:
+                  const BorderRadius.horizontal(right: Radius.circular(22)),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.12),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.30),
+                  blurRadius: 16,
+                  offset: const Offset(4, 0),
+                ),
+              ],
+            ),
+            child: NavigationRail(
+              backgroundColor: Colors.transparent,
+              destinations: [
+                NavigationRailDestination(
+                    icon: const Icon(MingCute.home_4_fill),
+                    label: Text(l10n.navHome)),
+                NavigationRailDestination(
+                    icon: const Icon(MingCute.book_5_fill),
+                    label: Text(l10n.navLibrary)),
+                NavigationRailDestination(
+                    icon: const Icon(MingCute.search_2_fill),
+                    label: Text(l10n.navSearch)),
+                NavigationRailDestination(
+                    icon: const Icon(MingCute.music_2_fill),
+                    label: Text(l10n.navLocal)),
+                NavigationRailDestination(
+                    icon: const Icon(MingCute.folder_download_fill),
+                    label: Text(l10n.navOffline)),
+              ],
+              selectedIndex: navigationShell.currentIndex,
+              minWidth: 70,
+              onDestinationSelected: navigationShell.goBranch,
+              groupAlignment: 0.0,
+              unselectedIconTheme:
+                  const IconThemeData(color: Default_Theme.primaryColor2),
+              indicatorColor: Default_Theme.accentColor2,
+              indicatorShape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(15)),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -250,25 +285,61 @@ class HorizontalNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return GNav(
-      gap: 7.0,
-      tabBackgroundColor: Default_Theme.accentColor2.withValues(alpha: 0.22),
-      color: Default_Theme.primaryColor2,
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      activeColor: Default_Theme.accentColor2,
-      textStyle: Default_Theme.secondoryTextStyleMedium.merge(
-          const TextStyle(color: Default_Theme.accentColor2, fontSize: 18)),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      backgroundColor: Default_Theme.themeColor.withValues(alpha: 0.3),
-      tabs: [
-        GButton(icon: MingCute.home_4_fill, text: l10n.navHome),
-        GButton(icon: MingCute.book_5_fill, text: l10n.navLibrary),
-        GButton(icon: MingCute.search_2_fill, text: l10n.navSearch),
-        GButton(icon: MingCute.music_2_fill, text: l10n.navLocal),
-        GButton(icon: MingCute.folder_download_fill, text: l10n.navOffline),
-      ],
-      selectedIndex: navigationShell.currentIndex,
-      onTabChange: navigationShell.goBranch,
+    return RepaintBoundary(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  const Color(0xFF1B1626).withValues(alpha: 0.70),
+                  const Color(0xFF0F0B17).withValues(alpha: 0.82),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.12),
+                width: 1.0,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.35),
+                  blurRadius: 18,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: GNav(
+              gap: 7.0,
+              tabBackgroundColor:
+                  Default_Theme.accentColor2.withValues(alpha: 0.22),
+              color: Default_Theme.primaryColor2,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              activeColor: Default_Theme.accentColor2,
+              textStyle: Default_Theme.secondoryTextStyleMedium.merge(
+                  const TextStyle(
+                      color: Default_Theme.accentColor2, fontSize: 18)),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              backgroundColor: Colors.transparent,
+              tabs: [
+                GButton(icon: MingCute.home_4_fill, text: l10n.navHome),
+                GButton(icon: MingCute.book_5_fill, text: l10n.navLibrary),
+                GButton(icon: MingCute.search_2_fill, text: l10n.navSearch),
+                GButton(icon: MingCute.music_2_fill, text: l10n.navLocal),
+                GButton(
+                    icon: MingCute.folder_download_fill, text: l10n.navOffline),
+              ],
+              selectedIndex: navigationShell.currentIndex,
+              onTabChange: navigationShell.goBranch,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

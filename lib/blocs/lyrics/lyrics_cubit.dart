@@ -43,10 +43,18 @@ class LyricsCubit extends Cubit<LyricsState> {
           maxResultsPerQuery: 15,
         ),
         super(LyricsInitial()) {
+    playerCubit.beatwavePlayer.onNextTrackReady = (next) {
+      unawaited(preCacheLyrics(next));
+    };
     _mediaItemSubscription =
         playerCubit.beatwavePlayer.mediaItem.stream.listen((item) {
       if (item != null) {
-        getLyrics(mediaItemToTrack(item));
+        final current = mediaItemToTrack(item);
+        getLyrics(current);
+        final next = playerCubit.beatwavePlayer.peekNextTrack();
+        if (next != null) {
+          unawaited(preCacheLyrics(next));
+        }
       }
     });
   }
@@ -460,9 +468,64 @@ class LyricsCubit extends Cubit<LyricsState> {
   Future<void> _autoSave(Lyrics lyrics) async {
     final enabled =
         await _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics);
-    if ((enabled ?? false)) {
+    if ((enabled ?? true)) {
       await _lyricsDao.putLyrics(lyrics);
       log('Lyrics saved for ID: ${lyrics.mediaID}', name: 'LyricsCubit');
+    }
+  }
+
+  /// Silently pre-fetches and caches lyrics for [track] without altering
+  /// current UI state. Used for auto-caching next song's lyrics.
+  Future<void> preCacheLyrics(Track track) async {
+    if (track.id.isEmpty) return;
+    try {
+      final enabled =
+          await _settingsDao.getSettingBool(SettingKeys.autoSaveLyrics);
+      if (!(enabled ?? true)) return;
+
+      final cached = await _lyricsDao.getLyrics(track.id);
+      if (cached != null && cached.mediaID == track.id) return;
+
+      final priority = await _loadPriority();
+      if (priority.isEmpty) return;
+
+      final profile = _buildTrackProfile(track);
+
+      for (final pluginId in priority) {
+        try {
+          final direct = await _tryGetLyricsByMetadataVariants(
+            pluginId: pluginId,
+            profile: profile,
+            track: track,
+          );
+          if (direct != null) {
+            await _lyricsDao.putLyrics(direct);
+            log(
+              'Auto-cached lyrics for ID: ${track.id} [Plugin: $pluginId/direct]',
+              name: 'LyricsCubit',
+            );
+            return;
+          }
+
+          final searched = await _tryGetLyricsViaSearchFallback(
+            pluginId: pluginId,
+            profile: profile,
+            track: track,
+          );
+          if (searched != null) {
+            await _lyricsDao.putLyrics(searched);
+            log(
+              'Auto-cached lyrics for ID: ${track.id} [Plugin: $pluginId/search]',
+              name: 'LyricsCubit',
+            );
+            return;
+          }
+        } catch (e) {
+          log('Pre-cache lyrics failed for $pluginId: $e', name: 'LyricsCubit');
+        }
+      }
+    } catch (e) {
+      log('Pre-cache lyrics error: $e', name: 'LyricsCubit');
     }
   }
 

@@ -186,7 +186,7 @@ class SettingsInitial extends SettingsState {
           chartMap: {},
           lFMPicks: false,
           lastFMScrobble: true,
-          autoSaveLyrics: false,
+          autoSaveLyrics: true,
           autoPlay: true,
           autoResolveUnavailableTracks: true,
           crossfadeDuration: 2,

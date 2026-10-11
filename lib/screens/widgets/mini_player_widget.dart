@@ -289,13 +289,13 @@ class _GlassOverlay extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.black.withValues(alpha: 0.45),
-              Colors.black.withValues(alpha: 0.60),
+              Colors.black.withValues(alpha: 0.50),
+              Colors.black.withValues(alpha: 0.70),
             ],
           ),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.06),
-            width: 0.5,
+            color: Colors.white.withValues(alpha: 0.12),
+            width: 1.0,
           ),
           borderRadius: BorderRadius.circular(16),
         ),

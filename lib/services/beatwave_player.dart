@@ -80,6 +80,9 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
   // ── Preload identity ───────────────────────────────────────────────────────
   String? _preloadedTrackId;
   bool _preloadedTrackOffline = false;
+  void Function(Track nextTrack)? onNextTrackReady;
+
+  Track? peekNextTrack() => _queueManager.peekNext(loopMode: loopMode.value);
 
   // ── Stream subscriptions ───────────────────────────────────────────────────
   StreamSubscription? _engineStateSub;
@@ -382,6 +385,13 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
       queue.add(tracks.map(trackToMediaItem).toList());
       // Don't persist during restore — we'd just write back what we read.
       if (_queueManager.isRestoring) return;
+
+      // Auto-cache next track if queue changed
+      final next = _queueManager.peekNext(loopMode: loopMode.value);
+      if (next?.id != _preloadedTrackId && engine.hasMedia) {
+        _preResolveNextTrack();
+      }
+
       // Throttle persistence writes — queue mutations can fire in rapid bursts
       // (e.g. batch-loading a 50-track playlist). 2s throttle coalesces them
       // into a single DB write while still capturing the final state.
@@ -532,6 +542,9 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
   void setLoopMode(LoopMode mode) {
     loopMode.add(mode);
     engine.setLoopMode(mode);
+    if (engine.hasMedia) {
+      _preResolveNextTrack();
+    }
   }
 
   void setCrossfadeDuration(Duration duration) {
@@ -732,6 +745,9 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
       if (!_isDisposed && ok) {
         _preloadedTrackId = expectedId;
         _preloadedTrackOffline = resolved.isOffline;
+        log('Auto-cached next track: ${next.title} ($expectedId)',
+            name: 'BeatWaveMusicPlayer');
+        onNextTrackReady?.call(next);
       }
     }).catchError((Object _) {
       _clearPreloadedMarker();

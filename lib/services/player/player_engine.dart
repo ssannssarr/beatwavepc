@@ -172,7 +172,11 @@ class PlayerEngine {
       native.setProperty('stream-lavf-o',
           'reconnect=1,reconnect_streamed=1,reconnect_delay_max=5');
       native.setProperty('cache', 'yes');
+      native.setProperty('cache-secs', '120');
       native.setProperty('demuxer-max-bytes', '134217728'); // 128 MB
+      native.setProperty('demuxer-max-back-bytes', '33554432'); // 32 MB for instant backwards seeking
+      native.setProperty('demuxer-readahead-secs', '120'); // Prefetch 120s buffer
+      native.setProperty('demuxer-pause-ahead', 'yes'); // Demux and cache even when standby player is paused
       native.setProperty('network-timeout', '15');
     }
   }
@@ -654,6 +658,7 @@ class PlayerEngine {
   }
 
   bool get isPreloaded => _standbyPreloaded || _pendingPreloadUri != null;
+  bool get hasMedia => _hasMedia;
 
   // -- Equalizer --------------------------------------------------------------
 
