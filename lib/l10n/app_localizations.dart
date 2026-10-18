@@ -1308,6 +1308,24 @@ abstract class AppLocalizations {
   /// **'UI & Services'**
   String get appuiTitle;
 
+  /// No description provided for @appuiThemeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme & Appearance'**
+  String get appuiThemeSection;
+
+  /// No description provided for @appuiOledTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark OLED Theme'**
+  String get appuiOledTheme;
+
+  /// No description provided for @appuiOledThemeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'True #000000 pure black for maximum contrast and OLED battery saving.'**
+  String get appuiOledThemeSubtitle;
+
   /// No description provided for @appuiAutoSlideCharts.
   ///
   /// In en, this message translates to:
@@ -1673,6 +1691,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'10-band parametric EQ via FFmpeg.'**
   String get playerSettingEqualizerSubtitle;
+
+  /// No description provided for @playerSettingEightD.
+  ///
+  /// In en, this message translates to:
+  /// **'8D Audio Spatializer'**
+  String get playerSettingEightD;
+
+  /// No description provided for @playerSettingEightDSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'360° dynamic binaural rotation with acoustic spatial widening.'**
+  String get playerSettingEightDSubtitle;
+
+  /// No description provided for @playerSettingEightDActive.
+  ///
+  /// In en, this message translates to:
+  /// **'8D ON'**
+  String get playerSettingEightDActive;
+
+  /// No description provided for @playerSettingEightDSlow.
+  ///
+  /// In en, this message translates to:
+  /// **'Slow (14s)'**
+  String get playerSettingEightDSlow;
+
+  /// No description provided for @playerSettingEightDNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal (10s)'**
+  String get playerSettingEightDNormal;
+
+  /// No description provided for @playerSettingEightDFast.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast (7s)'**
+  String get playerSettingEightDFast;
+
+  /// No description provided for @playerSettingEightDHeadphonesTip.
+  ///
+  /// In en, this message translates to:
+  /// **'Headphones or earbuds are recommended for the best 360° spatial experience.'**
+  String get playerSettingEightDHeadphonesTip;
+
+  /// No description provided for @menuEightDAudio.
+  ///
+  /// In en, this message translates to:
+  /// **'8D Audio Spatializer'**
+  String get menuEightDAudio;
 
   /// No description provided for @pluginDefaultsTitle.
   ///

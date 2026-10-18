@@ -39,6 +39,7 @@ import 'package:beatwave/services/audio_service_initializer.dart';
 import 'package:beatwave/services/keyboard_shortcuts_service.dart';
 import 'package:beatwave/services/shortcut_indicator_service.dart';
 import 'package:beatwave/core/theme/app_theme.dart';
+import 'package:beatwave/core/scroll/lenis_smooth_scroll.dart';
 import 'package:beatwave/services/import_export_service.dart';
 import 'package:beatwave/utils/ticker.dart';
 import 'package:beatwave/utils/url_checker.dart';
@@ -547,8 +548,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       ),
                       scaffoldMessengerKey: SnackbarService.messengerKey,
                       routerConfig: GlobalRoutes.globalRouter,
-                      theme: Default_Theme().defaultThemeData,
-                      scrollBehavior: CustomScrollBehavior(),
+                      theme: Default_Theme.getThemeData(
+                        oled: settingsState.darkOledTheme,
+                      ),
+                      scrollBehavior: const LenisScrollBehavior(),
                       debugShowCheckedModeBanner: false,
                     ),
                   ),
@@ -562,13 +565,5 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 }
 
-class CustomScrollBehavior extends MaterialScrollBehavior {
-  @override
-  Set<PointerDeviceKind> get dragDevices => {
-        PointerDeviceKind.touch,
-        PointerDeviceKind.mouse,
-        PointerDeviceKind.trackpad,
-        PointerDeviceKind.stylus,
-        PointerDeviceKind.invertedStylus,
-      };
-}
+// Backward-compat alias
+typedef CustomScrollBehavior = LenisScrollBehavior;

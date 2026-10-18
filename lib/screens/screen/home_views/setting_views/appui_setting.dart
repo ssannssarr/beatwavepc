@@ -84,12 +84,27 @@ class _AppUISettingsState extends State<AppUISettings> {
         buildWhen: (prev, curr) =>
             prev.autoSlideCharts != curr.autoSlideCharts ||
             prev.lFMPicks != curr.lFMPicks ||
+            prev.darkOledTheme != curr.darkOledTheme ||
             prev.chartMap != curr.chartMap,
         builder: (context, state) {
           return ListView(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             children: [
+              SettingSectionHeader(label: l10n.appuiThemeSection),
+              SettingCard(
+                children: [
+                  SettingToggleTile(
+                    icon: Icons.dark_mode_rounded,
+                    title: l10n.appuiOledTheme,
+                    subtitle: l10n.appuiOledThemeSubtitle,
+                    value: state.darkOledTheme,
+                    onChanged: (v) =>
+                        context.read<SettingsCubit>().setDarkOledTheme(v),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 28),
               SettingSectionHeader(label: l10n.settingsHomeScreen),
               SettingCard(
                 children: [

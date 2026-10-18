@@ -151,6 +151,20 @@ class PlayerEngine {
   Stream<List<double>> get equalizerBandGainsStream =>
       _eqBandGainsSubject.stream;
 
+  // ── 8D Audio Spatializer ───────────────────────────────────────────────────
+  bool _eightDEnabled = false;
+  double _eightDSpeed = 0.10; // 0.10 Hz = 1 full 360-degree rotation every 10s
+
+  final BehaviorSubject<bool> _eightDEnabledSubject =
+      BehaviorSubject.seeded(false);
+  final BehaviorSubject<double> _eightDSpeedSubject =
+      BehaviorSubject.seeded(0.10);
+
+  Stream<bool> get eightDEnabledStream => _eightDEnabledSubject.stream;
+  Stream<double> get eightDSpeedStream => _eightDSpeedSubject.stream;
+  bool get eightDEnabled => _eightDEnabled;
+  double get eightDSpeed => _eightDSpeed;
+
   PlayerEngine() {
     _playerA = Player(
         configuration: const PlayerConfiguration(
@@ -336,9 +350,9 @@ class PlayerEngine {
       if (_disposed || _generation != gen) return EngineCanceled();
 
       _hasMedia = true;
-      // FIX M-09: Apply EQ only to active player after open; standby gets it
+      // FIX M-09: Apply audio filters (EQ / 8D) to active player after open; standby gets it
       // when it becomes active (after _swapActivePlayer in crossfade paths).
-      if (_eqEnabled) await _applyEqualizerToPlayer(_active);
+      if (_hasActiveAudioFilters) await _applyAudioFiltersToPlayer(_active);
       _deriveState();
       return EngineSuccess();
     } catch (e) {
@@ -400,8 +414,8 @@ class PlayerEngine {
       _hasMedia = true;
 
       _swapActivePlayer();
-      // FIX M-09: Apply EQ to the newly active player after swap.
-      if (_eqEnabled) await _applyEqualizerToPlayer(_active);
+      // FIX M-09: Apply audio filters (EQ / 8D) to the newly active player after swap.
+      if (_hasActiveAudioFilters) await _applyAudioFiltersToPlayer(_active);
 
       return EngineSuccess();
     } catch (e) {
@@ -466,8 +480,8 @@ class PlayerEngine {
       _hasMedia = true;
 
       _swapActivePlayer();
-      // FIX M-09: Apply EQ to the new active player immediately after swap.
-      if (_eqEnabled) await _applyEqualizerToPlayer(_active);
+      // FIX M-09: Apply audio filters (EQ / 8D) to the new active player immediately after swap.
+      if (_hasActiveAudioFilters) await _applyAudioFiltersToPlayer(_active);
 
       _oldPlayerFader.fade(oldPlayer, oldStartVol, 0.0, duration);
       _newPlayerFader.fade(newPlayer, 0.0, _userVolume * 100.0, duration);
@@ -720,68 +734,113 @@ class PlayerEngine {
     _eqApplyDebounceTimer?.cancel();
     _eqApplyDebounceTimer = Timer(_eqApplyDebounce, () {
       if (_disposed || !_eqEnabled) return;
-      _applyEqualizer();
+      _applyAudioFilters();
     });
   }
 
-  /// FIX M-09: Applies the EQ filter with context-awareness.
-  /// - During normal playback: apply to active player only.
-  /// - When not transitioning: apply to both players so the standby
-  ///   is ready for preload and crossfade with the correct filter.
-  /// - After a crossfade completes: re-apply to the now-active player
-  ///   via the post-crossfade Timer in crossfadeToPreloaded.
-  Future<void> _applyEqualizer() async {
-    if (_disposed) return;
-    try {
-      final filter = _eqEnabled ? _buildEqualizerFilter() : '';
-      log('Applying EQ filter: ${filter.isEmpty ? '<off>' : filter}',
-          name: 'PlayerEngine');
+  // ── 8D Audio & Spatializer API ─────────────────────────────────────────────
 
-      if (_isTransitioning) {
-        // During crossfade, only update the new active player (post-swap).
-        // The old player is fading out and will be stopped soon anyway.
-        await _applyEqualizerToPlayer(_active);
-      } else {
-        // Outside of transition, apply to both so preloaded standby is ready.
-        await Future.wait([
-          _applyEqualizerToPlayer(_playerA),
-          _applyEqualizerToPlayer(_playerB),
-        ]);
-      }
-    } catch (e) {
-      log('Equalizer apply error: $e', name: 'PlayerEngine');
+  Future<void> setEightDEnabled(bool enabled) async {
+    if (_disposed) return;
+    _eightDEnabled = enabled;
+    _eightDEnabledSubject.add(enabled);
+    await _applyAudioFilters();
+  }
+
+  Future<void> setEightDSpeed(double speed) async {
+    if (_disposed) return;
+    _eightDSpeed = speed.clamp(0.02, 0.50);
+    _eightDSpeedSubject.add(_eightDSpeed);
+    if (_eightDEnabled) {
+      await _applyAudioFilters();
     }
   }
 
-  Future<void> _applyEqualizerToPlayer(Player player) async {
+  // ── Unified Audio Filter Pipeline ──────────────────────────────────────────
+
+  bool get _hasActiveAudioFilters => _eqEnabled || _eightDEnabled;
+
+  /// Backwards-compatible alias for EQ apply callers.
+  Future<void> _applyEqualizer() => _applyAudioFilters();
+
+  /// Applies unified EQ and 8D audio spatializer filters with context-awareness:
+  /// - During normal playback: apply to active player only.
+  /// - When not transitioning: apply to both players so the standby
+  ///   is ready for preload and crossfade with the correct filters.
+  /// - After a crossfade completes: re-apply to the now-active player
+  ///   via post-swap transition hooks.
+  Future<void> _applyAudioFilters() async {
     if (_disposed) return;
     try {
-      final filter = _eqEnabled ? _buildEqualizerFilter() : '';
+      final filter = _buildAudioFilters();
+      log('Applying audio filters: ${filter.isEmpty ? '<off>' : filter}',
+          name: 'PlayerEngine');
+
+      if (_isTransitioning) {
+        await _applyAudioFiltersToPlayer(_active);
+      } else {
+        await Future.wait([
+          _applyAudioFiltersToPlayer(_playerA),
+          _applyAudioFiltersToPlayer(_playerB),
+        ]);
+      }
+    } catch (e) {
+      log('Audio filters apply error: $e', name: 'PlayerEngine');
+    }
+  }
+
+  Future<void> _applyAudioFiltersToPlayer(Player player) async {
+    if (_disposed) return;
+    try {
+      final filter = _buildAudioFilters();
       final platform = player.platform;
       if (platform is NativePlayer) {
         await platform.setProperty('af', filter);
       }
     } catch (e) {
-      log('Equalizer apply to player error: $e', name: 'PlayerEngine');
+      log('Audio filters apply to player error: $e', name: 'PlayerEngine');
     }
   }
 
-  String _buildEqualizerFilter() {
+  /// Constructs the combined FFmpeg audio filter graph (`lavfi=[...]`) for MPV.
+  /// Seamlessly combines the 10-band equalizer with 8D dynamic binaural panning
+  /// and spatial widening so neither effect wipes the other.
+  String _buildAudioFilters() {
     final parts = <String>[];
-    for (var i = 0; i < _eqBands.length; i++) {
-      final band = _eqBands[i];
-      if (band.gain.abs() < 0.05) continue;
 
-      final width = switch (i) {
-        0 || 1 => 1.8,
-        8 || 9 => 1.6,
-        _ => 1.25,
-      };
+    // 1. Equalizer bands
+    if (_eqEnabled) {
+      for (var i = 0; i < _eqBands.length; i++) {
+        final band = _eqBands[i];
+        if (band.gain.abs() < 0.05) continue;
 
+        final width = switch (i) {
+          0 || 1 => 1.8,
+          8 || 9 => 1.6,
+          _ => 1.25,
+        };
+
+        parts.add(
+          'equalizer=f=${band.centerFrequency}:t=o:w=$width:g=${band.gain.toStringAsFixed(2)}',
+        );
+      }
+    }
+
+    // 2. 8D Audio Spatializer
+    if (_eightDEnabled) {
+      // Dynamic 360° circular binaural panning:
+      // apulsator modulates amplitude in a sine wave with 180° phase offset between L & R.
+      final hz = _eightDSpeed.clamp(0.02, 0.50);
       parts.add(
-        'equalizer=f=${band.centerFrequency}:t=o:w=$width:g=${band.gain.toStringAsFixed(2)}',
+        'apulsator=mode=sine:hz=${hz.toStringAsFixed(3)}:amount=0.92:offset_l=0:offset_r=0.5',
+      );
+      // Stereo widening with slight acoustic delay and crossfeed gives the perception
+      // of sound moving around in 3D physical space outside the head.
+      parts.add(
+        'stereowiden=delay=20:feedback=0.3:crossfeed=0.3:drymix=0.8',
       );
     }
+
     if (parts.isEmpty) return '';
     return 'lavfi=[${parts.join(',')}]';
   }
@@ -815,5 +874,7 @@ class PlayerEngine {
     await _errorController.close();
     await _eqEnabledSubject.close();
     await _eqBandGainsSubject.close();
+    await _eightDEnabledSubject.close();
+    await _eightDSpeedSubject.close();
   }
 }

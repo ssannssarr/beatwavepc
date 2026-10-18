@@ -9,6 +9,7 @@ class SettingKeys {
   // ── App behaviour ───────────────────────────────────────────────────────────
   static const String autoUpdateNotify = "auto_update_notify";
   static const String autoSlideCharts = "auto_slide_charts";
+  static const String darkOledTheme = "dark_oled_theme";
 
   // ── Playback ────────────────────────────────────────────────────────────────
   static const String strmQuality = "streamQuality";
@@ -36,6 +37,10 @@ class SettingKeys {
   /// process the audio. Note: switching to 'device' does NOT automatically
   /// activate the system EQ — the user configures it in device Settings.
   static const String eqSource = "eqSource";
+
+  /// 8D Audio spatializer toggle and rotation speed.
+  static const String eightDEnabled = "eightDEnabled";
+  static const String eightDSpeed = "eightDSpeed";
 
   // ── Downloads ───────────────────────────────────────────────────────────────
   static const String downPathSetting = "downloadPath";

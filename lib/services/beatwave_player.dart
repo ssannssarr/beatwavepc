@@ -285,6 +285,14 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
       engine.crossfadeDuration =
           Duration(seconds: int.tryParse(cfStr ?? '0') ?? 0);
 
+      // Restore 8D Audio spatializer settings
+      final eightDOn =
+          await dao.getSettingBool(SettingKeys.eightDEnabled) ?? false;
+      final speedStr = await dao.getSettingStr(SettingKeys.eightDSpeed);
+      final speed = double.tryParse(speedStr ?? '0.10') ?? 0.10;
+      await engine.setEightDSpeed(speed);
+      await engine.setEightDEnabled(eightDOn);
+
       final eqSource = await dao.getSettingStr(SettingKeys.eqSource);
       if (eqSource == EqSourceValues.device) {
         // Device EQ mode: in-app EQ must stay off.
@@ -1075,6 +1083,29 @@ class BeatWaveMusicPlayer extends BaseAudioHandler
 
   void setRecentlyPlayedPercentThreshold(double p) =>
       _recentlyPlayedTracker.setPercentThreshold(p);
+
+  // ─── 8D Audio Spatializer ──────────────────────────────────────────────────
+
+  bool get eightDEnabled => engine.eightDEnabled;
+  Stream<bool> get eightDEnabledStream => engine.eightDEnabledStream;
+  double get eightDSpeed => engine.eightDSpeed;
+  Stream<double> get eightDSpeedStream => engine.eightDSpeedStream;
+
+  Future<void> setEightDEnabled(bool enabled) async {
+    await engine.setEightDEnabled(enabled);
+    try {
+      final dao = SettingsDAO(DBProvider.db);
+      await dao.putSettingBool(SettingKeys.eightDEnabled, enabled);
+    } catch (_) {}
+  }
+
+  Future<void> setEightDSpeed(double speed) async {
+    await engine.setEightDSpeed(speed);
+    try {
+      final dao = SettingsDAO(DBProvider.db);
+      await dao.putSettingStr(SettingKeys.eightDSpeed, speed.toString());
+    } catch (_) {}
+  }
 
   // ─── Lifecycle ─────────────────────────────────────────────────────────────
 

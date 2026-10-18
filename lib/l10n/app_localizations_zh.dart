@@ -651,6 +651,16 @@ class AppLocalizationsZh extends AppLocalizations {
   String get appuiTitle => '界面与服务';
 
   @override
+  String get appuiThemeSection => 'Theme & Appearance';
+
+  @override
+  String get appuiOledTheme => 'Dark OLED Theme';
+
+  @override
+  String get appuiOledThemeSubtitle =>
+      'True #000000 pure black for maximum contrast and OLED battery saving.';
+
+  @override
   String get appuiAutoSlideCharts => '自动轮播榜单';
 
   @override
@@ -837,6 +847,32 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get playerSettingEqualizerSubtitle => '通过 FFmpeg 实现的 10 段参数均衡器。';
+
+  @override
+  String get playerSettingEightD => '8D Audio Spatializer';
+
+  @override
+  String get playerSettingEightDSubtitle =>
+      '360° dynamic binaural rotation with acoustic spatial widening.';
+
+  @override
+  String get playerSettingEightDActive => '8D ON';
+
+  @override
+  String get playerSettingEightDSlow => 'Slow (14s)';
+
+  @override
+  String get playerSettingEightDNormal => 'Normal (10s)';
+
+  @override
+  String get playerSettingEightDFast => 'Fast (7s)';
+
+  @override
+  String get playerSettingEightDHeadphonesTip =>
+      'Headphones or earbuds are recommended for the best 360° spatial experience.';
+
+  @override
+  String get menuEightDAudio => '8D Audio Spatializer';
 
   @override
   String get pluginDefaultsTitle => '插件默认项';

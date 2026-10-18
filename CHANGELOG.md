@@ -1,4 +1,12 @@
 
+## [2.1.0] - 2026-10-18
+
+### Added
+- **8D Audio Spatializer**: Live 360-degree dynamic binaural rotation with acoustic spatial widening, accessible from the player menu and settings.
+- **Pure Dark OLED Theme**: Pitch black (`#000000`) theme enabled by default out of the box for maximum contrast and OLED battery savings.
+- **Lenis-style Smooth Scrolling**: Normalized mouse wheel delta (scrolling less per step) with buttery-smooth inertial momentum damping across the entire application.
+- **Optimized Rendering & Frosted Glass**: Refined glassmorphism effects and repaint boundary optimizations.
+
 ## [3.0.4] - 2026-05-29
 
 ### Fixed

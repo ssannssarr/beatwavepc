@@ -72,7 +72,7 @@ class _AudioPlayerViewState extends State<AudioPlayerView>
     final isMobile = ResponsiveBreakpoints.of(context).smallerOrEqualTo(TABLET);
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 12, 4, 9),
+      backgroundColor: Default_Theme.themeColor,
       resizeToAvoidBottomInset: false,
       extendBodyBehindAppBar: true,
       appBar: AppBar(

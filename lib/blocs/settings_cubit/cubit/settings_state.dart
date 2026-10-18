@@ -29,6 +29,10 @@ class SettingsState extends Equatable {
   /// See [EqSourceValues] for valid values.
   final String eqSource;
 
+  final bool eightDEnabled;
+  final double eightDSpeed;
+  final bool darkOledTheme;
+
   final String homePluginId; // content resolver plugin for home sections
   final String searchPluginId; // persisted search plugin selection
   final List<String> resolverPriority; // content resolver priority order
@@ -59,6 +63,9 @@ class SettingsState extends Equatable {
     required this.eqBandGains,
     required this.eqPreset,
     required this.eqSource,
+    required this.eightDEnabled,
+    required this.eightDSpeed,
+    required this.darkOledTheme,
     required this.homePluginId,
     required this.searchPluginId,
     required this.resolverPriority,
@@ -90,6 +97,9 @@ class SettingsState extends Equatable {
     List<double>? eqBandGains,
     String? eqPreset,
     String? eqSource,
+    bool? eightDEnabled,
+    double? eightDSpeed,
+    bool? darkOledTheme,
     String? homePluginId,
     String? searchPluginId,
     List<String>? resolverPriority,
@@ -123,6 +133,9 @@ class SettingsState extends Equatable {
           : List<double>.from(this.eqBandGains),
       eqPreset: eqPreset ?? this.eqPreset,
       eqSource: eqSource ?? this.eqSource,
+      eightDEnabled: eightDEnabled ?? this.eightDEnabled,
+      eightDSpeed: eightDSpeed ?? this.eightDSpeed,
+      darkOledTheme: darkOledTheme ?? this.darkOledTheme,
       homePluginId: homePluginId ?? this.homePluginId,
       searchPluginId: searchPluginId ?? this.searchPluginId,
       resolverPriority: resolverPriority != null
@@ -160,6 +173,9 @@ class SettingsState extends Equatable {
         eqBandGains,
         eqPreset,
         eqSource,
+        eightDEnabled,
+        eightDSpeed,
+        darkOledTheme,
         homePluginId,
         searchPluginId,
         resolverPriority,
@@ -194,6 +210,9 @@ class SettingsInitial extends SettingsState {
           eqBandGains: List<double>.filled(10, 0.0),
           eqPreset: 'Flat',
           eqSource: EqSourceValues.builtin,
+          eightDEnabled: false,
+          eightDSpeed: 0.10,
+          darkOledTheme: true,
           homePluginId: '',
           searchPluginId: '',
           resolverPriority: const [],

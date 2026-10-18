@@ -169,6 +169,22 @@ class SettingsCubit extends Cubit<SettingsState> {
             defaultValue: ''),
         SettingKeys.suggestionPluginId,
       ),
+      // [27] eightDEnabled
+      _readSetting(
+        () => _settingsRepo.getSettingBool(SettingKeys.eightDEnabled),
+        SettingKeys.eightDEnabled,
+      ),
+      // [28] eightDSpeed
+      _readSetting(
+        () => _settingsRepo.getSettingStr(SettingKeys.eightDSpeed,
+            defaultValue: '0.10'),
+        SettingKeys.eightDSpeed,
+      ),
+      // [29] darkOledTheme
+      _readSetting(
+        () => _settingsRepo.getSettingBool(SettingKeys.darkOledTheme),
+        SettingKeys.darkOledTheme,
+      ),
     ]);
 
     // Normalize stream quality labels.
@@ -275,6 +291,9 @@ class SettingsCubit extends Cubit<SettingsState> {
       eqBandGains: eqGains,
       eqPreset: (results[20] as String?) ?? 'Flat',
       eqSource: eqSource,
+      eightDEnabled: (results[27] as bool?) ?? false,
+      eightDSpeed: double.tryParse((results[28] as String?) ?? '0.10') ?? 0.10,
+      darkOledTheme: (results[29] as bool?) ?? true,
       homePluginId: (results[22] as String?) ?? '',
       searchPluginId: (results[23] as String?) ?? '',
       resolverPriority: resolverPriority,
@@ -462,6 +481,21 @@ class SettingsCubit extends Cubit<SettingsState> {
         : EqSourceValues.builtin;
     _settingsRepo.putSettingStr(SettingKeys.eqSource, normalized);
     emit(state.copyWith(eqSource: normalized));
+  }
+
+  void setEightDEnabled(bool v) {
+    _settingsRepo.putSettingBool(SettingKeys.eightDEnabled, v);
+    emit(state.copyWith(eightDEnabled: v));
+  }
+
+  void setEightDSpeed(double speed) {
+    _settingsRepo.putSettingStr(SettingKeys.eightDSpeed, speed.toString());
+    emit(state.copyWith(eightDSpeed: speed));
+  }
+
+  void setDarkOledTheme(bool v) {
+    _settingsRepo.putSettingBool(SettingKeys.darkOledTheme, v);
+    emit(state.copyWith(darkOledTheme: v));
   }
 
   void setHomePluginId(String id) {

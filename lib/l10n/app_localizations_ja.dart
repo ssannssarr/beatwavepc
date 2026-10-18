@@ -653,6 +653,16 @@ class AppLocalizationsJa extends AppLocalizations {
   String get appuiTitle => 'UIとサービス';
 
   @override
+  String get appuiThemeSection => 'Theme & Appearance';
+
+  @override
+  String get appuiOledTheme => 'Dark OLED Theme';
+
+  @override
+  String get appuiOledThemeSubtitle =>
+      'True #000000 pure black for maximum contrast and OLED battery saving.';
+
+  @override
   String get appuiAutoSlideCharts => 'チャートの自動スライド';
 
   @override
@@ -839,6 +849,32 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get playerSettingEqualizerSubtitle => 'FFmpeg を使用した10バンド EQ。';
+
+  @override
+  String get playerSettingEightD => '8D Audio Spatializer';
+
+  @override
+  String get playerSettingEightDSubtitle =>
+      '360° dynamic binaural rotation with acoustic spatial widening.';
+
+  @override
+  String get playerSettingEightDActive => '8D ON';
+
+  @override
+  String get playerSettingEightDSlow => 'Slow (14s)';
+
+  @override
+  String get playerSettingEightDNormal => 'Normal (10s)';
+
+  @override
+  String get playerSettingEightDFast => 'Fast (7s)';
+
+  @override
+  String get playerSettingEightDHeadphonesTip =>
+      'Headphones or earbuds are recommended for the best 360° spatial experience.';
+
+  @override
+  String get menuEightDAudio => '8D Audio Spatializer';
 
   @override
   String get pluginDefaultsTitle => 'プラグインのデフォルト';

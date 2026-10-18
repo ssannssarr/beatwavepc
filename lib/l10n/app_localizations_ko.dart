@@ -652,6 +652,16 @@ class AppLocalizationsKo extends AppLocalizations {
   String get appuiTitle => 'UI 및 서비스';
 
   @override
+  String get appuiThemeSection => 'Theme & Appearance';
+
+  @override
+  String get appuiOledTheme => 'Dark OLED Theme';
+
+  @override
+  String get appuiOledThemeSubtitle =>
+      'True #000000 pure black for maximum contrast and OLED battery saving.';
+
+  @override
   String get appuiAutoSlideCharts => '차트 자동 슬라이드';
 
   @override
@@ -839,6 +849,32 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get playerSettingEqualizerSubtitle => 'FFmpeg 기반 10밴드 파라메트릭 EQ입니다.';
+
+  @override
+  String get playerSettingEightD => '8D Audio Spatializer';
+
+  @override
+  String get playerSettingEightDSubtitle =>
+      '360° dynamic binaural rotation with acoustic spatial widening.';
+
+  @override
+  String get playerSettingEightDActive => '8D ON';
+
+  @override
+  String get playerSettingEightDSlow => 'Slow (14s)';
+
+  @override
+  String get playerSettingEightDNormal => 'Normal (10s)';
+
+  @override
+  String get playerSettingEightDFast => 'Fast (7s)';
+
+  @override
+  String get playerSettingEightDHeadphonesTip =>
+      'Headphones or earbuds are recommended for the best 360° spatial experience.';
+
+  @override
+  String get menuEightDAudio => '8D Audio Spatializer';
 
   @override
   String get pluginDefaultsTitle => '플러그인 기본 설정';

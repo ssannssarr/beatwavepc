@@ -3,6 +3,7 @@ import 'package:beatwave/blocs/media_player/beatwave_player_cubit.dart';
 import 'package:beatwave/blocs/settings_cubit/cubit/settings_cubit.dart';
 import 'package:beatwave/core/theme/app_theme.dart';
 import 'package:beatwave/screens/screen/home_views/setting_views/setting_shared_widgets.dart';
+import 'package:beatwave/screens/screen/player_views/eight_d_audio_sheet.dart';
 import 'package:beatwave/screens/screen/player_views/equalizer_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -125,11 +126,21 @@ class PlayerSettings extends StatelessWidget {
                     badge: state.eqEnabled
                         ? l10n.playerSettingEqualizerActive
                         : null,
-                    roundBottom: true,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const EqualizerView()),
                     ),
+                  ),
+                  const SettingDivider(),
+                  SettingNavTile(
+                    icon: Icons.spatial_audio_rounded,
+                    title: l10n.playerSettingEightD,
+                    subtitle: l10n.playerSettingEightDSubtitle,
+                    badge: state.eightDEnabled
+                        ? l10n.playerSettingEightDActive
+                        : null,
+                    roundBottom: true,
+                    onTap: () => showEightDAudioSheet(context),
                   ),
                 ],
               ),

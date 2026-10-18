@@ -18,7 +18,13 @@ class AppTheme {
       TextStyle(fontFamily: "FontAwesome-Solids");
 
   // ── Colors ──────────────────────────────────────────────────────────────────
-  static const themeColor = Color(0xFF0A040C);
+  /// Pure black for Dark OLED theme (true #000000 black)
+  static const oledThemeColor = Color(0xFF000000);
+  /// Classic dark theme background (faint midnight purple)
+  static const classicThemeColor = Color(0xFF0A040C);
+
+  /// Default theme color out of the box is Pure OLED Black.
+  static const themeColor = oledThemeColor;
   static const primaryColor1 = Color(0xFFDAEAF7);
   static const primaryColor2 = Color.fromARGB(255, 242, 231, 240);
   static const accentColor1 = Color(0xFF0EA5E0);
@@ -27,12 +33,18 @@ class AppTheme {
   static const successColor = Color(0xFF5EFF43);
 
   // ── Theme Data ───────────────────────────────────────────────────────────────
-  ThemeData get defaultThemeData {
-    const darkScheme = ColorScheme.dark(
+  ThemeData get defaultThemeData => getThemeData(oled: true);
+
+  static ThemeData getThemeData({bool oled = true}) {
+    final bgColor = oled ? oledThemeColor : classicThemeColor;
+    final surfaceContainer = oled ? const Color(0xFF0E0E0E) : const Color(0xFF1A111B);
+    final popupBg = oled ? const Color(0xFF121212) : const Color.fromARGB(255, 23, 18, 25);
+
+    final darkScheme = ColorScheme.dark(
       primary: accentColor2,
       secondary: accentColor1,
-      surface: themeColor,
-      surfaceContainerHighest: Color(0xFF1A111B),
+      surface: bgColor,
+      surfaceContainerHighest: surfaceContainer,
       onPrimary: primaryColor1,
       onSecondary: primaryColor1,
       onSurface: primaryColor1,
@@ -40,8 +52,8 @@ class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
-      scaffoldBackgroundColor: themeColor,
-      dialogBackgroundColor: themeColor,
+      scaffoldBackgroundColor: bgColor,
+      dialogBackgroundColor: bgColor,
       primaryColorDark: accentColor2,
       fontFamily: 'Gilroy',
       primarySwatch: MaterialColor(
@@ -70,11 +82,11 @@ class AppTheme {
         radius: const Radius.circular(10),
         thickness: WidgetStateProperty.all(5),
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: themeColor,
+      appBarTheme: AppBarTheme(
+        backgroundColor: bgColor,
         foregroundColor: primaryColor1,
-        surfaceTintColor: themeColor,
-        iconTheme: IconThemeData(color: primaryColor1),
+        surfaceTintColor: bgColor,
+        iconTheme: const IconThemeData(color: primaryColor1),
       ),
       progressIndicatorTheme:
           const ProgressIndicatorThemeData(color: accentColor2),
@@ -95,26 +107,26 @@ class AppTheme {
                 ? accentColor1
                 : primaryColor2.withValues(alpha: 0.0)),
       ),
-      searchBarTheme: const SearchBarThemeData(
-        backgroundColor: WidgetStatePropertyAll(themeColor),
+      searchBarTheme: SearchBarThemeData(
+        backgroundColor: WidgetStatePropertyAll(bgColor),
       ),
-      popupMenuTheme: const PopupMenuThemeData(
-        color: Color.fromARGB(255, 23, 18, 25),
-        textStyle: TextStyle(color: primaryColor1),
+      popupMenuTheme: PopupMenuThemeData(
+        color: popupBg,
+        textStyle: const TextStyle(color: primaryColor1),
       ),
-      dropdownMenuTheme: const DropdownMenuThemeData(
+      dropdownMenuTheme: DropdownMenuThemeData(
         menuStyle: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(themeColor),
+          backgroundColor: WidgetStatePropertyAll(bgColor),
         ),
-        textStyle: TextStyle(color: primaryColor1),
+        textStyle: const TextStyle(color: primaryColor1),
       ),
-      menuTheme: const MenuThemeData(
+      menuTheme: MenuThemeData(
         style: MenuStyle(
-          backgroundColor: WidgetStatePropertyAll(themeColor),
+          backgroundColor: WidgetStatePropertyAll(bgColor),
         ),
       ),
-      cardTheme: const CardThemeData(
-        color: themeColor,
+      cardTheme: CardThemeData(
+        color: bgColor,
         surfaceTintColor: Colors.transparent,
       ),
     );

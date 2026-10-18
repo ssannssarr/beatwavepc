@@ -15,6 +15,7 @@ import 'package:beatwave/core/constants/route_paths.dart';
 import 'package:beatwave/core/models/exported.dart';
 import 'package:beatwave/core/theme/app_theme.dart';
 import 'package:beatwave/l10n/app_localizations.dart';
+import 'package:beatwave/screens/screen/player_views/eight_d_audio_sheet.dart';
 import 'package:beatwave/screens/widgets/snackbar.dart';
 import 'package:beatwave/screens/widgets/smart_replace_dialog.dart';
 import 'package:beatwave/screens/widgets/song_tile.dart';
@@ -231,6 +232,52 @@ class _TrackOptionsBottomSheet extends StatelessWidget {
                             onTap: (ctx) {
                               Navigator.pop(ctx);
                               showSmartReplaceDialog(parentContext, song);
+                            },
+                          ),
+                          _CompactTile(
+                            icon: Icons.spatial_audio_rounded,
+                            title: l10n.menuEightDAudio,
+                            iconColor: Default_Theme.accentColor1,
+                            trailing: StreamBuilder<bool>(
+                              stream: context
+                                  .read<BeatWavePlayerCubit>()
+                                  .beatwavePlayer
+                                  .eightDEnabledStream,
+                              initialData: context
+                                  .read<BeatWavePlayerCubit>()
+                                  .beatwavePlayer
+                                  .eightDEnabled,
+                              builder: (tileContext, snapshot) {
+                                final isEnabled = snapshot.data ?? false;
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: isEnabled
+                                        ? Default_Theme.accentColor1
+                                            .withValues(alpha: 0.18)
+                                        : Colors.white.withValues(alpha: 0.08),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Text(
+                                    isEnabled
+                                        ? l10n.playerSettingEightDActive
+                                        : 'OFF',
+                                    style: TextStyle(
+                                      color: isEnabled
+                                          ? Default_Theme.accentColor1
+                                          : Colors.white.withValues(alpha: 0.5),
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            onTap: (ctx) {
+                              Navigator.pop(ctx);
+                              showEightDAudioSheet(parentContext);
                             },
                           ),
 
@@ -463,6 +510,7 @@ class _CompactTile extends StatelessWidget {
   final String title;
   final Color? iconColor;
   final Color? titleColor;
+  final Widget? trailing;
   final void Function(BuildContext context) onTap;
 
   const _CompactTile({
@@ -470,6 +518,7 @@ class _CompactTile extends StatelessWidget {
     required this.title,
     this.iconColor,
     this.titleColor,
+    this.trailing,
     required this.onTap,
   });
 
@@ -512,6 +561,10 @@ class _CompactTile extends StatelessWidget {
                       ),
                 ),
               ),
+              if (trailing != null) ...[
+                trailing!,
+                const SizedBox(width: 6),
+              ],
               Icon(
                 Icons.chevron_right_rounded,
                 size: 18,
