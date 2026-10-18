@@ -49,7 +49,7 @@ class HistoryDAO {
   ///
   /// If [limit] is 0 all entries are returned (use with care).
   /// Sorted newest-first. Entries with missing track links are skipped
-  /// but NOT deleted — broken entry cleanup is a separate maintenance task.
+  /// but NOT deleted â€” broken entry cleanup is a separate maintenance task.
   Future<List<Track>> getHistory({int limit = 50}) async {
     final isar = await _db;
     final query = isar.playbackHistoryDBs.where().sortByPlayedAtDesc();

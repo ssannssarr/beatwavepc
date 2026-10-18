@@ -65,7 +65,7 @@ class LibraryDAO {
 
     row.type = PlaylistTypeDB.artist;
     row.name = artist.id;
-    row.subtitle = 'Artist • $sourceName';
+    row.subtitle = 'Artist â€¢ $sourceName';
     row.thumbnail = artistDb.thumbnail;
     row.description = artist.subtitle;
     row.artists = [artistDb];
@@ -90,7 +90,7 @@ class LibraryDAO {
 
     row.type = PlaylistTypeDB.album;
     row.name = album.id;
-    row.subtitle = 'Album • $sourceName';
+    row.subtitle = 'Album â€¢ $sourceName';
     row.thumbnail = albumDb.thumbnail;
     row.description = album.subtitle;
     row.artists = albumDb.artists;
@@ -131,7 +131,7 @@ class LibraryDAO {
 
     row.type = PlaylistTypeDB.remotePlaylist;
     row.name = playlist.id;
-    row.subtitle = 'Playlist • $sourceName';
+    row.subtitle = 'Playlist â€¢ $sourceName';
     row.thumbnail = remoteSummary.thumbnail;
     row.description = playlist.owner;
     row.artists = ownerArtists;
