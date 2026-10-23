@@ -2,15 +2,6 @@ name: Build AppImage
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: "Version to stamp into the build (no leading v)"
-        required: false
-        default: "3.0.0"
-      run_tests:
-        description: "Run tests first (slower)"
-        type: boolean
-        default: false
 
 permissions:
   contents: read
@@ -21,70 +12,120 @@ concurrency:
 
 jobs:
   appimage:
-    runs-on: ubuntu-22.04   # old glibc, so the AppImage runs on most distros
+    runs-on: ubuntu-22.04   # older glibc, so the AppImage runs on more distros
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Flutter
+        uses: subosito/flutter-action@v2
         with:
-          java-version: "21"
-          distribution: temurin
+          channel: stable
+          cache: true
 
-      - uses: gradle/actions/setup-gradle@v4
+      # flutter_rust_bridge builds rust/ through cargokit during `flutter build`.
+      - name: Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libstdc++-12-dev \
+            libmpv-dev mpv \
+            file desktop-file-utils
 
       - name: Packaging tools
         run: |
-          sudo apt-get update
-          sudo apt-get install -y fakeroot binutils file cmake g++
           curl -sSL -o appimagetool.AppImage \
             https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool.AppImage
+          curl -sSL -o linuxdeploy.AppImage \
+            https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+          chmod +x appimagetool.AppImage linuxdeploy.AppImage
 
-      - name: Optional Last.fm keys
-        env:
-          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
-          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+      - name: Dependencies
+        run: flutter pub get
+
+      - name: Build Linux release
+        run: flutter build linux --release
+
+      - name: Check the bundle
         run: |
-          touch local.properties
-          if [ -n "$LASTFM_API_KEY" ]; then
-            echo "LASTFM_API_KEY=$LASTFM_API_KEY" >> local.properties
-            echo "LASTFM_SECRET=$LASTFM_SECRET" >> local.properties
-          fi
-      - name: Show what was checked out
+          ls -la build/linux/x64/release/bundle build/linux/x64/release/bundle/lib
+          ldd build/linux/x64/release/bundle/beatwave | grep "not found" || echo "no missing libs"
+
+      - name: Assemble AppDir
         run: |
-          pwd
-          ls -la
-          ls -la gradle || true
-          find . -maxdepth 2 -name 'settings.gradle.kts' -o -maxdepth 2 -name 'gradlew'
-      - run: chmod +x gradlew
+          set -euo pipefail
+          BUNDLE=build/linux/x64/release/bundle
+          APPDIR="$PWD/BeatWave.AppDir"
 
-      - name: Tests
-        if: ${{ inputs.run_tests }}
-        run: ./gradlew :shared:jvmTest :desktopApp:test -Pbeatwave.version=${{ inputs.version }}
+          # Keep the Flutter bundle together: the binary finds lib/ and data/ next to itself.
+          mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib"
+          cp -a "$BUNDLE/." "$APPDIR/usr/bin/"
 
-      - name: Build app image
-        run: ./gradlew :desktopApp:createDistributable -Pbeatwave.version=${{ inputs.version }}
+          # AppRun: media_kit opens libmpv by name at runtime, so the bundled
+          # library folders have to be on the search path.
+          cat > AppRun <<'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          export LD_LIBRARY_PATH="$HERE/usr/lib:$HERE/usr/bin/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+          exec "$HERE/usr/bin/beatwave" "$@"
+          EOF
+          chmod +x AppRun
 
-      - name: Check the analyser and models made it in
-        run: |
-          jar=$(find desktopApp/build/compose/binaries/main/app -name 'desktopApp*.jar' | head -n 1)
-          echo "Checking $jar"
-          jar tf "$jar" | grep 'native/.*analysis' || echo "WARNING: no Automix analyser in jar"
-          jar tf "$jar" | grep 'models/.*\.onnx'   || echo "WARNING: no ONNX models in jar"
+          cat > beatwave.desktop <<'EOF'
+          [Desktop Entry]
+          Type=Application
+          Name=BeatWave
+          Comment=Local and plugin-first streaming music player
+          Exec=beatwave
+          Icon=beatwave
+          Categories=AudioVideo;Audio;Player;
+          Terminal=false
+          EOF
+
+          cp assets/icons/BeatWave_Logo_back_4.png beatwave.png
+
+          # libmpv is loaded with dlopen, so nothing links to it and linuxdeploy
+          # would never find it. Hand it over explicitly with its dependencies.
+          LIBS=""
+          for f in /usr/lib/x86_64-linux-gnu/libmpv.so.[0-9]*; do
+            LIBS="$LIBS --library $f"
+          done
+          echo "bundling:$LIBS"
+
+          APPIMAGE_EXTRACT_AND_RUN=1 ./linuxdeploy.AppImage \
+            --appdir "$APPDIR" \
+            --executable "$APPDIR/usr/bin/beatwave" \
+            $LIBS \
+            --desktop-file beatwave.desktop \
+            --icon-file beatwave.png \
+            --icon-filename beatwave \
+            --custom-apprun AppRun
+
+          ls "$APPDIR/usr/lib" | head -50
 
       - name: Wrap into an AppImage
         run: |
+          set -euo pipefail
+          VERSION=$(grep -m1 '^version:' pubspec.yaml | awk '{print $2}' | cut -d+ -f1)
           mkdir -p dist
-          desktopApp/packaging/appimage.sh \
-            "desktopApp/build/compose/binaries/main/app/BeatWave PC" \
-            "dist/BeatWave-PC-${{ inputs.version }}-linux-x86_64.AppImage" \
-            "$PWD/appimagetool.AppImage"
+          ARCH=x86_64 APPIMAGE_EXTRACT_AND_RUN=1 ./appimagetool.AppImage \
+            BeatWave.AppDir "dist/BeatWave-${VERSION}-linux-x86_64.AppImage"
           ls -lh dist
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload
+        uses: actions/upload-artifact@v4
         with:
-          name: BeatWave-PC-AppImage
+          name: BeatWave-AppImage
           path: dist/*.AppImage
           if-no-files-found: error
           retention-days: 14
