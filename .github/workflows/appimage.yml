@@ -40,7 +40,7 @@ jobs:
             clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libstdc++-12-dev \
             libmpv-dev mpv \
-            file desktop-file-utils
+            file desktop-file-utils imagemagick
 
       - name: Packaging tools
         run: |
@@ -92,7 +92,9 @@ jobs:
           Terminal=false
           EOF
 
-          cp assets/icons/BeatWave_Logo_back_4.png beatwave.png
+          # linuxdeploy only accepts standard icon sizes; the source is 1024x1024.
+          convert assets/icons/BeatWave_Logo_back_4.png -resize 512x512 beatwave.png
+          file beatwave.png
 
           # libmpv is loaded with dlopen, so nothing links to it and linuxdeploy
           # would never find it. Hand it over explicitly with its dependencies.
