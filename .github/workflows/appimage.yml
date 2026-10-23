@@ -1,0 +1,85 @@
+name: Build AppImage
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to stamp into the build (no leading v)"
+        required: false
+        default: "3.0.0"
+      run_tests:
+        description: "Run tests first (slower)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: appimage-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  appimage:
+    runs-on: ubuntu-22.04   # old glibc, so the AppImage runs on most distros
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: temurin
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Packaging tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot binutils file cmake g++
+          curl -sSL -o appimagetool.AppImage \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool.AppImage
+
+      - name: Optional Last.fm keys
+        env:
+          LASTFM_API_KEY: ${{ secrets.LASTFM_API_KEY }}
+          LASTFM_SECRET: ${{ secrets.LASTFM_SECRET }}
+        run: |
+          touch local.properties
+          if [ -n "$LASTFM_API_KEY" ]; then
+            echo "LASTFM_API_KEY=$LASTFM_API_KEY" >> local.properties
+            echo "LASTFM_SECRET=$LASTFM_SECRET" >> local.properties
+          fi
+
+      - run: chmod +x gradlew
+
+      - name: Tests
+        if: ${{ inputs.run_tests }}
+        run: ./gradlew :shared:jvmTest :desktopApp:test -Pbeatwave.version=${{ inputs.version }}
+
+      - name: Build app image
+        run: ./gradlew :desktopApp:createDistributable -Pbeatwave.version=${{ inputs.version }}
+
+      - name: Check the analyser and models made it in
+        run: |
+          jar=$(find desktopApp/build/compose/binaries/main/app -name 'desktopApp*.jar' | head -n 1)
+          echo "Checking $jar"
+          jar tf "$jar" | grep 'native/.*analysis' || echo "WARNING: no Automix analyser in jar"
+          jar tf "$jar" | grep 'models/.*\.onnx'   || echo "WARNING: no ONNX models in jar"
+
+      - name: Wrap into an AppImage
+        run: |
+          mkdir -p dist
+          desktopApp/packaging/appimage.sh \
+            "desktopApp/build/compose/binaries/main/app/BeatWave PC" \
+            "dist/BeatWave-PC-${{ inputs.version }}-linux-x86_64.AppImage" \
+            "$PWD/appimagetool.AppImage"
+          ls -lh dist
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BeatWave-PC-AppImage
+          path: dist/*.AppImage
+          if-no-files-found: error
+          retention-days: 14
